@@ -22,7 +22,7 @@ variable "api_image" {
 variable "api_container_port" {
   description = "The container port on which the API listens"
   type        = number
-  default     = 8081
+  default     = 8080
 }
 
 variable "api_extra_env_vars" {
@@ -43,6 +43,11 @@ variable "database_url" {
   description = "The connection string for Cloud SQL Postgres instance"
   type        = string
   sensitive   = true
+}
+
+variable "database_connection_name" {
+  description = "The connection name for Cloud SQL Postgres instance"
+  type        = string
 }
 
 variable "api_service_account_email" {

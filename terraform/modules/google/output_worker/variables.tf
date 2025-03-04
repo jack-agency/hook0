@@ -30,6 +30,11 @@ variable "database_url" {
   type        = string
 }
 
+variable "database_connection_name" {
+  description = "The connection name for Cloud SQL Postgres instance"
+  type        = string
+}
+
 variable "output_worker_service_account_email" {
   description = "The service account email to run the Cloud Run service"
   type        = string

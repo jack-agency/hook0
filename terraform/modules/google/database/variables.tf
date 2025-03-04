@@ -12,7 +12,7 @@ variable "region" {
 variable "name" {
   description = "The name of the Cloud SQL instance"
   type        = string
-  default     = "hook0instance"
+  default     = "hook0"
 }
 
 variable "db_name" {

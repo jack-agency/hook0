@@ -26,6 +26,7 @@ module "cloud_sql" {
   ip_configuration = {
     private_network = "projects/${var.project_id}/global/networks/${var.vpc_network}"
     ipv4_enabled    = false
+    require_ssl     = true
   }
 
   backup_configuration = {
@@ -40,5 +41,4 @@ module "cloud_sql" {
     var.db_user,
     var.db_password
   ]
-
 }

@@ -101,6 +101,6 @@ resource "google_secret_manager_secret" "master_api_key" {
 resource "google_secret_manager_secret_version" "master_api_key_version" {
   count = length(var.master_api_key) > 0 ? 1 : 0
 
-  secret      = google_secret_manager_secret.master_api_key.id
+  secret      = google_secret_manager_secret.master_api_key[0].id
   secret_data = var.master_api_key
 }

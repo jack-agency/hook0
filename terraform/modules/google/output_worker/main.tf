@@ -17,6 +17,7 @@ resource "google_cloud_run_v2_service" "hook0_output_worker" {
 
     containers {
       image = var.output_worker_image
+      depends_on = [ "cloud-sql-proxy" ]
 
       env {
         name = "DATABASE_URL"
@@ -49,10 +50,38 @@ resource "google_cloud_run_v2_service" "hook0_output_worker" {
       }
     }
 
+    containers {
+      name = "cloud-sql-proxy"
+
+      image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.13.0"
+      args = flatten([
+        # "--auto-iam-authn",
+        "--address", "0.0.0.0",
+        "--private-ip",
+        "--health-check",
+        "--http-address", "0.0.0.0",
+        # "--quiet",
+        var.database_connection_name,
+      ])
+
+      startup_probe {
+        http_get {
+          path = "/startup"
+          port = 9090
+        }
+      }
+    }
+
     # VPC connector to allow access to private cloud sql in the VPC.
     vpc_access {
-      connector = var.vpc_connector
-      egress    = "PRIVATE_RANGES_ONLY"
+      # connector = var.vpc_connector
+      egress = "PRIVATE_RANGES_ONLY"
+
+      network_interfaces {
+        network    = "lucius"
+        subnetwork = "lucius"
+        tags       = ["smtp"]
+      }
     }
   }
 

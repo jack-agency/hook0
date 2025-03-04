@@ -42,6 +42,9 @@ module "secrets" {
 }
 
 ## Cloud SQL
+data "google_project" "main" {
+  project_id = var.project_id
+}
 
 module "cloud_sql" {
   source      = "./modules/google/database"
@@ -52,6 +55,30 @@ module "cloud_sql" {
   db_user     = module.secrets.db_user_secret
   db_password = module.secrets.db_password_secret
   vpc_network = var.vpc_network
+}
+
+module "cloud_sql_iam" {
+  source   = "terraform-google-modules/iam/google//modules/projects_iam"
+  projects = [var.project_id]
+
+  mode = "additive"
+
+  conditional_bindings = [
+    {
+      role        = "roles/cloudsql.client"
+      title       = "cloud_sql_client"
+      description = "Allow to connect to the instance \"${module.cloud_sql.instance_name}\""
+      expression  = "resource.name == 'projects/${data.google_project.main.project_id}/instances/${module.cloud_sql.instance_name}' && resource.type == 'sqladmin.googleapis.com/Instance'"
+      members     = ["serviceAccount:${module.api_service_account.cloud_run_api_sa_email}"]
+    },
+    # {
+    #   role        = "roles/cloudsql.instanceUser"
+    #   title       = "cloud_sql_iam"
+    #   description = "Allow to authenticate using IAM to the instance \"${module.cloud_sql.instance_name}\""
+    #   expression  = "resource.name == 'projects/${data.google_project.main.project_id}/instances/${module.cloud_sql.instance_name}' && resource.type == 'sqladmin.googleapis.com/Instance'"
+    #   members     = ["serviceAccount:${module.api_service_account.cloud_run_api_sa_email}"]
+    # }
+  ]
 }
 
 ## Cloud Run Frontend
@@ -109,22 +136,24 @@ resource "google_secret_manager_secret_iam_member" "sa_secret_accessor_master_ap
   member    = "serviceAccount:${module.api_service_account.cloud_run_api_sa_email}"
 }
 
+module "master_api_key_readers_secret_iam" {
+  source = "terraform-google-modules/iam/google//modules/secret_manager_iam"
+
+  count = length(var.master_api_key_readers) >= 1 ? 1 : 0
+
+  project = var.project_id
+  mode    = "additive"
+  secrets = [module.secrets.master_api_key_id]
+
+  bindings = {
+    "roles/secretmanager.secretAccessor" = var.master_api_key_readers
+  }
+}
+
 resource "google_secret_manager_secret_iam_member" "sa_secret_accessor_db_connection_string" {
   secret_id = module.secrets.db_connection_string_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${module.api_service_account.cloud_run_api_sa_email}"
-}
-
-resource "google_project_iam_member" "sa_cloudsql_client" {
-  project = var.project_id
-  role    = "roles/cloudsql.client"
-  member  = "serviceAccount:${module.api_service_account.cloud_run_api_sa_email}"
-
-  condition {
-    title       = "Restrict to specific Cloud SQL instance"
-    description = "Allow connection only to instance ${module.cloud_sql.instance_name}"
-    expression  = "resource.name == 'projects/${var.project_id}/instances/${module.cloud_sql.instance_name}' && resource.type == 'sqladmin.googleapis.com/Instance'"
-  }
 }
 
 ## Cloud Run API
@@ -138,12 +167,28 @@ module "api_cloud_run" {
   api_service_name          = var.api_service_name
   frontend_service_url      = module.frontend_cloud_run.frontend_service_url
   database_url              = module.secrets.db_connection_string
+  database_connection_name  = module.cloud_sql.instance_connection_name
   vpc_connector             = var.vpc_connector
   vpc_network               = var.vpc_network
   biscuit_private_key       = module.secrets.biscuit_private_key
   smtp_connection_url       = module.secrets.smtp_connection_url
   email_sender_address      = module.secrets.email_sender_address
   master_api_key            = module.secrets.master_api_key
+}
+
+module "api_cloud_run_iam" {
+  count = length(var.api_invoker_members_iam) >= 1 ? 1 : 0
+  source = "terraform-google-modules/iam/google//modules/cloud_run_services_iam"
+
+  cloud_run_services = [var.api_service_name]
+
+  project  = var.project_id
+  location = var.region
+  mode     = "additive"
+
+  bindings = {
+    "roles/run.invoker" = var.api_invoker_members_iam
+  }
 }
 
 ## Cloud Run Output Worker
@@ -155,6 +200,7 @@ module "output_worker_cloud_run" {
   output_worker_image                 = data.google_artifact_registry_docker_image.hook0_output_worker.self_link
   output_worker_service_name          = var.output_worker_service_name
   database_url                        = module.secrets.db_connection_string
+  database_connection_name            = module.cloud_sql.instance_connection_name
   vpc_connector                       = var.vpc_connector
   output_worker_service_account_email = module.api_service_account.cloud_run_api_sa_email
 }

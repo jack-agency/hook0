@@ -77,10 +77,10 @@ output "email_sender_address_id" {
 output "master_api_key" {
   sensitive   = true
   description = "Value of the master API key secret"
-  value       = google_secret_manager_secret.master_api_key.name
+  value       = google_secret_manager_secret.master_api_key[0].name
 }
 
 output "master_api_key_id" {
   description = "ID of the master API key secret"
-  value       = google_secret_manager_secret.master_api_key.id
+  value       = try(google_secret_manager_secret.master_api_key[0].id, null)
 }

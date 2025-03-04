@@ -53,7 +53,19 @@ variable "api_service_name" {
 variable "api_container_port" {
   description = "The container port on which the API listens"
   type        = number
-  default     = 8081
+  default     = 8080
+}
+
+variable "api_invoker_members_iam" {
+  description = "User or service account allowed to invoke the service"
+  type        = list(string)
+  default     = []
+}
+
+variable "master_api_key_readers" {
+  description = "User or service account allowed to read the master API key"
+  type        = list(string)
+  default     = []
 }
 
 variable "email_sender_address" {
