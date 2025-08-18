@@ -2,7 +2,7 @@ ARG RUST_VERSION=1.88
 
 FROM rust:${RUST_VERSION} AS builder-rust
 WORKDIR /app
-ARG FEATURES=""
+ARG FEATURES="reqwest-rustls-tls-native-roots"
 RUN --mount=type=bind,source=Cargo.toml,target=Cargo.toml \
     --mount=type=bind,source=Cargo.lock,target=Cargo.lock \
     --mount=type=bind,source=api,target=api \
