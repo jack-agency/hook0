@@ -17,7 +17,7 @@ resource "google_cloud_run_v2_service" "hook0_frontend" {
 
       env {
         name  = "API_ENDPOINT"
-        value = "http://localhost:8000/api/v1"
+        value = "http://localhost:8081/api/v1" # Only for test purposes. To replace with the API service URL in production.
       }
     }
 
