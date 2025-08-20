@@ -1,3 +1,8 @@
+## Project
+data "google_project" "main" {
+  project_id = var.project_id
+}
+
 ## Artifact Registry
 data "google_artifact_registry_repository" "hook0_repository" {
   location      = var.region
@@ -42,9 +47,6 @@ module "secrets" {
 }
 
 ## Cloud SQL
-data "google_project" "main" {
-  project_id = var.project_id
-}
 
 module "cloud_sql" {
   source      = "./modules/google/database"
@@ -90,6 +92,7 @@ module "frontend_cloud_run" {
   frontend_image          = data.google_artifact_registry_docker_image.hook0_frontend.self_link
   frontend_service_name   = var.frontend_service_name
   frontend_container_port = var.frontend_container_port
+  api_service_name        = var.api_service_name
   vpc_connector           = var.vpc_connector
 }
 
@@ -165,7 +168,7 @@ module "api_cloud_run" {
   api_image                 = data.google_artifact_registry_docker_image.hook0_api.self_link
   api_service_account_email = module.api_service_account.cloud_run_api_sa_email
   api_service_name          = var.api_service_name
-  frontend_service_url      = module.frontend_cloud_run.frontend_service_url
+  frontend_service_url      = "https://${var.frontend_service_name}-${data.google_project.main.number}.${var.region}.run.app" # The frontend service URL
   database_url              = module.secrets.db_connection_string
   database_connection_name  = module.cloud_sql.instance_connection_name
   vpc_connector             = var.vpc_connector

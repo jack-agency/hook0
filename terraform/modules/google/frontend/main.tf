@@ -1,5 +1,9 @@
 ## Create the Cloud Run service for the Frontend.
 
+data "google_project" "main" {
+  project_id = var.project_id
+}
+
 resource "google_cloud_run_v2_service" "hook0_frontend" {
   name                = "hook0-frontend"
   location            = var.region
@@ -17,7 +21,7 @@ resource "google_cloud_run_v2_service" "hook0_frontend" {
 
       env {
         name  = "API_ENDPOINT"
-        value = "http://localhost:8081/api/v1" # Only for test purposes. To replace with the API service URL in production.
+        value = "https://${var.api_service_name}-${data.google_project.main.number}.${var.region}.run.app/api/v1" # The API endpoint URL
       }
     }
 

@@ -38,12 +38,7 @@ resource "google_cloud_run_v2_service" "hook0_api" {
 
       env {
         name  = "CORS_ALLOWED_ORIGINS"
-        value = "http://localhost:8081,http://localhost:8082" # Only for test purposes.
-      }
-
-      env {
-        name  = "APP_URL"
-        value = "http://localhost:8082" # Only for test purposes. To replace with the frontend service URL in production.
+        value = "http://localhost:8081,http://localhost:8082,${var.frontend_service_url}" # Local host endpoints are only for test purposes. To remove
       }
 
       env {
@@ -68,7 +63,7 @@ resource "google_cloud_run_v2_service" "hook0_api" {
 
       env {
         name  = "APP_URL"
-        value = var.frontend_service_url
+        value = "https://${var.api_service_name}-${data.google_project.main.number}.${var.region}.run.app"
       }
 
       env {
@@ -129,7 +124,7 @@ resource "google_cloud_run_v2_service" "hook0_api" {
     }
   }
 
-  depends_on = [var.biscuit_private_key, var.api_service_account_email, var.database_url, var.frontend_service_url]
+  depends_on = [var.biscuit_private_key, var.api_service_account_email, var.database_url]
 }
 
 resource "google_compute_firewall" "allow_smtp" {
@@ -148,7 +143,7 @@ resource "google_compute_firewall" "allow_smtp" {
   destination_ranges = ["0.0.0.0/0"]
 }
 
-## Cloud router and NAT to allow egress traffic to the SMTP server.
+# Cloud router and NAT to allow egress traffic to the SMTP server.
 
 # resource "google_compute_router" "hook0-smtp-router" {
 #   name    = "hook0-smtp-router"

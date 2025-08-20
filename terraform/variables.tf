@@ -41,7 +41,7 @@ variable "db_password" {
 variable "api_image" {
   description = "The image name to fetch from Artifact Registry"
   type        = string
-  default     = "hook0-api"
+  default     = "hook0-api:v1.0.1"
 }
 
 variable "api_service_name" {
@@ -97,7 +97,7 @@ variable "master_api_key" {
 variable "frontend_image" {
   description = "The image name to fetch from Artifact Registry"
   type        = string
-  default     = "hook0-frontend"
+  default     = "hook0-frontend:v1.0.1"
 }
 
 variable "frontend_service_name" {
@@ -117,7 +117,7 @@ variable "frontend_container_port" {
 variable "output_worker_image" {
   description = "The image name to fetch from Artifact Registry"
   type        = string
-  default     = "hook0-output-worker"
+  default     = "hook0-output-worker:v1.0.1"
 }
 
 variable "output_worker_service_name" {

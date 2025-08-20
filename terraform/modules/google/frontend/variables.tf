@@ -25,6 +25,11 @@ variable "frontend_container_port" {
   default     = 80
 }
 
+variable "api_service_name" {
+  description = "The name of the Cloud Run API service"
+  type        = string
+}
+
 variable "vpc_connector" {
   description = "The id of the serverless VPC Access connector"
   type        = string
