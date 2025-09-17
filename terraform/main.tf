@@ -201,7 +201,7 @@ module "output_worker_cloud_run" {
   project_id                          = var.project_id
   region                              = var.region
   output_worker_image                 = data.google_artifact_registry_docker_image.hook0_output_worker.self_link
-  output_worker_service_name          = var.output_worker_service_name
+  output_worker_pool_name          = var.output_worker_pool_name
   database_url                        = module.secrets.db_connection_string
   database_connection_name            = module.cloud_sql.instance_connection_name
   vpc_connector                       = var.vpc_connector

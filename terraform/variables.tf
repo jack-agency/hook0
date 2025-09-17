@@ -120,10 +120,10 @@ variable "output_worker_image" {
   default     = "hook0-output-worker:v1.0.1"
 }
 
-variable "output_worker_service_name" {
+variable "output_worker_pool_name" {
   description = "The name of the Cloud Run service"
   type        = string
-  default     = "hook0-output-worker"
+  default     = "hook0-output-worker-wp"
 }
 
 variable "output_worker_container_port" {

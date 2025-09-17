@@ -9,7 +9,7 @@ variable "region" {
   default     = "europe-west1"
 }
 
-variable "output_worker_service_name" {
+variable "output_worker_pool_name" {
   description = "The name of the Cloud Run service"
   type        = string
 }

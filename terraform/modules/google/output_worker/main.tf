@@ -2,7 +2,7 @@
 
 resource "google_cloud_run_v2_worker_pool" "hook0_output_worker" {
   provider = google-beta
-  name                = var.output_worker_service_name
+  name                = var.output_worker_pool_name
   location            = var.region
   project             = var.project_id
   deletion_protection = false
