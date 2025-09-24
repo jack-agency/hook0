@@ -12,6 +12,8 @@ resource "google_cloud_run_v2_service" "hook0_frontend" {
   ingress             = "INGRESS_TRAFFIC_ALL"
 
   template {
+    service_account = var.frontend_service_account_email
+
     containers {
       image = var.frontend_image
 

@@ -25,6 +25,11 @@ variable "frontend_container_port" {
   default     = 80
 }
 
+variable "frontend_service_account_email" {
+  description = "The email of the service account to run the Cloud Run service as"
+  type        = string
+}
+
 variable "api_service_name" {
   description = "The name of the Cloud Run API service"
   type        = string

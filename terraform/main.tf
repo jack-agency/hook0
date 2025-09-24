@@ -92,6 +92,7 @@ module "frontend_cloud_run" {
   frontend_image          = data.google_artifact_registry_docker_image.hook0_frontend.self_link
   frontend_service_name   = var.frontend_service_name
   frontend_container_port = var.frontend_container_port
+  frontend_service_account_email = module.api_service_account.cloud_run_api_sa_email
   api_service_name        = var.api_service_name
   vpc_connector           = var.vpc_connector
 }
