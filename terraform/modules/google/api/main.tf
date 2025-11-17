@@ -9,6 +9,9 @@ resource "google_cloud_run_v2_service" "hook0_api" {
   project             = var.project_id
   deletion_protection = false
   ingress             = "INGRESS_TRAFFIC_ALL"
+  # launch_stage = "BETA"
+  # provider = google-beta
+  # iap_enabled = true
 
   template {
     service_account = var.api_service_account_email
@@ -16,6 +19,7 @@ resource "google_cloud_run_v2_service" "hook0_api" {
     containers {
       image = var.api_image
       depends_on = [ "cloud-sql-proxy" ]
+      name = "api"
 
       ports {
         container_port = var.api_container_port
@@ -38,7 +42,7 @@ resource "google_cloud_run_v2_service" "hook0_api" {
 
       env {
         name  = "CORS_ALLOWED_ORIGINS"
-        value = "http://localhost:8081,http://localhost:8082,${var.frontend_service_url}" # Local host endpoints are only for test purposes. To remove
+        value = "${var.frontend_service_url}" # Local host endpoints are only for test purposes. To remove
       }
 
       env {
@@ -63,7 +67,7 @@ resource "google_cloud_run_v2_service" "hook0_api" {
 
       env {
         name  = "APP_URL"
-        value = "https://${var.api_service_name}-${data.google_project.main.number}.${var.region}.run.app"
+        value = "${var.frontend_service_url}"
       }
 
       env {

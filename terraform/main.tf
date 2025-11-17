@@ -86,15 +86,15 @@ module "cloud_sql_iam" {
 ## Cloud Run Frontend
 
 module "frontend_cloud_run" {
-  source                  = "./modules/google/frontend"
-  project_id              = var.project_id
-  region                  = var.region
-  frontend_image          = data.google_artifact_registry_docker_image.hook0_frontend.self_link
-  frontend_service_name   = var.frontend_service_name
-  frontend_container_port = var.frontend_container_port
+  source                         = "./modules/google/frontend"
+  project_id                     = var.project_id
+  region                         = var.region
+  frontend_image                 = data.google_artifact_registry_docker_image.hook0_frontend.self_link
+  frontend_service_name          = var.frontend_service_name
+  frontend_container_port        = var.frontend_container_port
   frontend_service_account_email = module.api_service_account.cloud_run_api_sa_email
-  api_service_name        = var.api_service_name
-  vpc_connector           = var.vpc_connector
+  api_service_name               = var.api_service_name
+  vpc_connector                  = var.vpc_connector
 }
 
 ## Cloud Run API Service account
@@ -181,7 +181,7 @@ module "api_cloud_run" {
 }
 
 module "api_cloud_run_iam" {
-  count = length(var.api_invoker_members_iam) >= 1 ? 1 : 0
+  count  = length(var.api_invoker_members_iam) >= 1 ? 1 : 0
   source = "terraform-google-modules/iam/google//modules/cloud_run_services_iam"
 
   cloud_run_services = [var.api_service_name]
@@ -202,7 +202,7 @@ module "output_worker_cloud_run" {
   project_id                          = var.project_id
   region                              = var.region
   output_worker_image                 = data.google_artifact_registry_docker_image.hook0_output_worker.self_link
-  output_worker_pool_name          = var.output_worker_pool_name
+  output_worker_pool_name             = var.output_worker_pool_name
   database_url                        = module.secrets.db_connection_string
   database_connection_name            = module.cloud_sql.instance_connection_name
   vpc_connector                       = var.vpc_connector

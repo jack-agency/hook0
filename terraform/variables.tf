@@ -89,7 +89,7 @@ variable "master_api_key" {
   description = "The master API key"
   type        = string
   sensitive   = true
-  default = ""
+  default     = ""
 }
 
 ## Cloud Run Frontend

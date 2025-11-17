@@ -10,6 +10,9 @@ resource "google_cloud_run_v2_service" "hook0_frontend" {
   project             = var.project_id
   deletion_protection = false
   ingress             = "INGRESS_TRAFFIC_ALL"
+  launch_stage = "BETA"
+  provider = google-beta
+  iap_enabled = true
 
   template {
     service_account = var.frontend_service_account_email
