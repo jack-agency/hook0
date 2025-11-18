@@ -1,30 +1,35 @@
-use actix::clock::sleep;
+use actix_web::rt::time::sleep;
 use log::{debug, error, info, trace};
 use sqlx::{Acquire, PgPool, Postgres, query};
 use std::time::{Duration, Instant};
+use tokio::sync::Semaphore;
 
 const STARTUP_GRACE_PERIOD: Duration = Duration::from_secs(30);
 
 pub async fn periodically_clean_up_old_events(
+    housekeeping_semaphore: &Semaphore,
     db: &PgPool,
     period: Duration,
     global_days_of_events_retention_limit: i32,
     grace_period_in_day: u16,
     delete: bool,
+    full_reindex: bool,
 ) {
     sleep(STARTUP_GRACE_PERIOD).await;
 
-    loop {
+    while let Ok(permit) = housekeeping_semaphore.acquire().await {
         if let Err(e) = clean_up_old_events_and_responses(
             db,
             global_days_of_events_retention_limit,
             grace_period_in_day,
             delete,
+            full_reindex,
         )
         .await
         {
             error!("Could not clean up old events: {e}");
         }
+        drop(permit);
 
         sleep(period).await;
     }
@@ -35,6 +40,7 @@ async fn clean_up_old_events_and_responses(
     global_days_of_events_retention_limit: i32,
     grace_period_in_day: u16,
     delete: bool,
+    full_reindex: bool,
 ) -> Result<(), sqlx::Error> {
     trace!("Start cleaning up old events...");
     let start = Instant::now();
@@ -60,7 +66,7 @@ async fn clean_up_old_events_and_responses(
 
         if total_deleted_events + total_dangling_responses > 0 {
             debug!("Running vacuum analyze and reindexing...");
-            vacuum_analyze_and_reindex(db).await?;
+            vacuum_analyze_and_reindex(db, full_reindex).await?;
         }
 
         info!(
@@ -74,6 +80,14 @@ async fn clean_up_old_events_and_responses(
             start.elapsed()
         );
     }
+
+    if !delete || !full_reindex {
+        trace!("Reindexing partial index webhook.request_attempt_waiting_idx...");
+        query!("REINDEX INDEX CONCURRENTLY webhook.request_attempt_waiting_idx")
+            .execute(db)
+            .await?;
+    }
+
     Ok(())
 }
 
@@ -152,22 +166,31 @@ async fn delete_dangling_responses<'a, A: Acquire<'a, Database = Postgres>>(
 
 async fn vacuum_analyze_and_reindex<'a, A: Acquire<'a, Database = Postgres>>(
     db: A,
+    full_reindex: bool,
 ) -> Result<(), sqlx::Error> {
     let mut db = db.acquire().await?;
 
+    trace!(
+        "Running VACUUM ANALYZE on big tables: event.event, webhook.request_attempt, webhook.response"
+    );
     query!("VACUUM ANALYZE event.event, webhook.request_attempt, webhook.response")
         .execute(&mut *db)
         .await?;
 
-    query!("REINDEX TABLE CONCURRENTLY event.event")
-        .execute(&mut *db)
-        .await?;
-    query!("REINDEX TABLE CONCURRENTLY webhook.request_attempt")
-        .execute(&mut *db)
-        .await?;
-    query!("REINDEX TABLE CONCURRENTLY webhook.response")
-        .execute(&mut *db)
-        .await?;
+    if full_reindex {
+        trace!("Reindexing table event.event...");
+        query!("REINDEX TABLE CONCURRENTLY event.event")
+            .execute(&mut *db)
+            .await?;
+        trace!("Reindexing table webhook.request_attempt...");
+        query!("REINDEX TABLE CONCURRENTLY webhook.request_attempt")
+            .execute(&mut *db)
+            .await?;
+        trace!("Reindexing table webhook.response...");
+        query!("REINDEX TABLE CONCURRENTLY webhook.response")
+            .execute(&mut *db)
+            .await?;
+    }
 
     Ok(())
 }

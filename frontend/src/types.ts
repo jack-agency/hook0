@@ -581,7 +581,7 @@ export interface paths {
     };
     /**
      * List request attempts
-     * @description Retrieves the most recent attempts to deliver events to subscriptions for a given application. Request attempts track the status and history of event deliveries, including retries and failures.
+     * @description Retrieves the most recent attempts to deliver events to subscriptions for a given application. Request attempts track the status and history of event deliveries, including retries and failures. This endpoint is paginated: the next URL is given in the `Link` header of the response, following HATEOAS conventions.
      */
     get: operations['requestAttempts.read'];
     put?: never;
@@ -800,10 +800,10 @@ export interface components {
       event_id: string;
       event_type: string;
       labels: {
-        [key: string]: Record<string, never>;
+        [key: string]: string;
       };
       metadata?: {
-        [key: string]: Record<string, never>;
+        [key: string]: string;
       };
       /** Format: date-time */
       occurred_at: string;
@@ -839,6 +839,7 @@ export interface components {
     };
     HealthCheck: {
       database: boolean;
+      pulsar?: boolean;
     };
     IngestedEvent: {
       /** Format: uuid */
@@ -1066,7 +1067,7 @@ export interface components {
         [key: string]: string;
       };
       metadata: {
-        [key: string]: Record<string, never>;
+        [key: string]: string;
       };
       /** Format: uuid */
       secret: string;
@@ -1093,10 +1094,10 @@ export interface components {
       /** @description _Kept for backward compatibility, you should use `labels`_ */
       label_value?: string;
       labels?: {
-        [key: string]: Record<string, never>;
+        [key: string]: string;
       };
       metadata?: {
-        [key: string]: Record<string, never>;
+        [key: string]: string;
       };
       target: {
         headers: Record<string, never>;
@@ -2570,7 +2571,6 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description OK */
       200: {
         headers: {
           [name: string]: unknown;
@@ -2613,6 +2613,14 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HealthCheck'];
+        };
       };
     };
   };
@@ -3315,6 +3323,9 @@ export interface operations {
       query: {
         application_id: string;
         event_id?: string;
+        max_created_at?: string;
+        min_created_at?: string;
+        pagination_cursor?: string;
         subscription_id?: string;
       };
       header?: never;
