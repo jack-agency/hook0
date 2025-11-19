@@ -393,18 +393,6 @@ struct Config {
     #[clap(long, env, default_value = "false")]
     enable_unverified_users_cleanup: bool,
 
-    /// Run housekeeping once and exit (useful for Cloud Run Job)
-    #[clap(long, env, default_value_t = false)]
-    run_housekeeping: bool,
-
-    /// If true, housekeeping will actually delete items (default: false)
-    #[clap(long, env, default_value_t = false)]
-    housekeeping_delete: bool,
-
-    /// If true, housekeeping will perform a full reindex where applicable
-    #[clap(long, env, default_value_t = false)]
-    housekeeping_full_reindex: bool,
-
     /// Duration (in second) to wait between unverified users cleanups
     #[clap(long, env, default_value = "3600")]
     unverified_users_cleanup_period_in_s: u64,
@@ -688,41 +676,7 @@ async fn main() -> anyhow::Result<()> {
                 .await?;
         }
 
-        // If requested, run housekeeping once and exit (for Cloud Run Job usage)
-        if config.run_housekeeping {
-            info!("Run-once housekeeping requested; running tasks and exiting");
-
-            let delete = config.housekeeping_delete
-                || config.old_events_cleanup_report_and_delete
-                || config.expired_tokens_cleanup_report_and_delete;
-
-            let full_reindex = config.housekeeping_full_reindex || config.old_events_cleanup_full_reindex;
-
-            if let Err(e) = old_events_cleanup::run_once_clean_up_old_events(
-                &housekeeping_pool,
-                config.quota_global_days_of_events_retention_limit,
-                config.old_events_cleanup_grace_period_in_day,
-                delete,
-                full_reindex,
-            )
-            .await
-            {
-                error!("Old events housekeeping failed: {e}");
-            }
-
-            if let Err(e) = expired_tokens_cleanup::run_once_clean_up_expired_tokens(
-                &housekeeping_pool,
-                config.expired_tokens_cleanup_grace_period,
-                delete,
-            )
-            .await
-            {
-                error!("Expired tokens housekeeping failed: {e}");
-            }
-
-            info!("Run-once housekeeping finished, exiting");
-            return Ok(());
-        }
+        
 
         // Create Pulsar client
         let pulsar_config = if let (
