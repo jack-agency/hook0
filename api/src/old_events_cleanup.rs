@@ -194,3 +194,21 @@ async fn vacuum_analyze_and_reindex<'a, A: Acquire<'a, Database = Postgres>>(
 
     Ok(())
 }
+
+/// Run the old events cleanup once (helper for run-once mode)
+pub async fn run_once_clean_up_old_events(
+    db: &PgPool,
+    global_days_of_events_retention_limit: i32,
+    grace_period_in_day: u16,
+    delete: bool,
+    full_reindex: bool,
+) -> Result<(), sqlx::Error> {
+    clean_up_old_events_and_responses(
+        db,
+        global_days_of_events_retention_limit,
+        grace_period_in_day,
+        delete,
+        full_reindex,
+    )
+    .await
+}

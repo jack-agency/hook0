@@ -98,3 +98,19 @@ async fn vacuum_analyze_and_reindex<'a, A: Acquire<'a, Database = Postgres>>(
 
     Ok(())
 }
+
+/// Run the expired tokens cleanup once (helper for run-once mode)
+pub async fn run_once_clean_up_expired_tokens(
+    db: &PgPool,
+    grace_period: Duration,
+    delete: bool,
+) -> Result<(), sqlx::Error> {
+    match PgInterval::try_from(grace_period) {
+        Ok(grace_period) => clean_up_expired_tokens(db, &grace_period, delete).await,
+        Err(e) => {
+            error!("Could not convert grace period ({grace_period:?}) to a PG interval: {e}");
+            // return an error to propagate failure
+            Err(sqlx::Error::PoolTimedOut)
+        }
+    }
+}

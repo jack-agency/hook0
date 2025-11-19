@@ -154,3 +154,35 @@ variable "repository_project_id" {
   description = "The project id of the Artifact Registry repository"
   type        = string
 }
+
+## Housekeeping job / scheduler
+
+variable "housekeeping_job_name" {
+  description = "The name of the Cloud Run Job for housekeeping"
+  type        = string
+  default     = "hook0-housekeeping"
+}
+
+variable "housekeeping_cron" {
+  description = "Cron schedule for housekeeping job (Cloud Scheduler)"
+  type        = string
+  default     = "0 3 * * *"
+}
+
+variable "housekeeping_time_zone" {
+  description = "Time zone for the Cloud Scheduler job"
+  type        = string
+  default     = "UTC"
+}
+
+variable "housekeeping_delete" {
+  description = "If true, housekeeping job will actually delete items"
+  type        = bool
+  default     = false
+}
+
+variable "housekeeping_full_reindex" {
+  description = "If true, housekeeping will run full reindexes where applicable"
+  type        = bool
+  default     = false
+}
