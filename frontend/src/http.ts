@@ -9,6 +9,24 @@ import { push } from 'notivue';
 
 type definitions = components['schemas'];
 
+let runtimeApiEndpoint: string | null = null;
+
+async function loadRuntimeConfig(): Promise<void> {
+  if (runtimeApiEndpoint !== null) return;
+
+  try {
+    const resp = await fetch('/config.json', { cache: 'no-store' });
+    if (!resp.ok) throw new Error('Could not load /config.json');
+    const cfg = (await resp.json()) as { API_ENDPOINT?: string };
+    runtimeApiEndpoint = cfg.API_ENDPOINT ?? null;
+  } catch (e) {
+    // Keep runtimeApiEndpoint null and let callers decide how to handle it
+    runtimeApiEndpoint = null;
+    // eslint-disable-next-line no-console
+    console.error('Failed to load runtime config /config.json:', e);
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/require-await
 async function getAxios(
   authenticated: boolean = true,
@@ -26,8 +44,17 @@ async function getAxios(
         }
       : {};
 
+  if (runtimeApiEndpoint === null) {
+    await loadRuntimeConfig();
+  }
+
+  const resolvedEndpoint = featureFlags.getOrElse(
+    'API_ENDPOINT',
+    runtimeApiEndpoint ?? import.meta.env.VITE_API_ENDPOINT ?? ''
+  );
+
   const client = axios.create({
-    baseURL: featureFlags.getOrElse('API_ENDPOINT', import.meta.env.VITE_API_ENDPOINT ?? ''),
+    baseURL: resolvedEndpoint,
     timeout: featureFlags.getIntegerOrElse(
       'API_TIMEOUT',
       Number.isNaN(parseInt(import.meta.env.VITE_API_TIMEOUT, 10))
