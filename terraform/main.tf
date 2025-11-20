@@ -195,6 +195,21 @@ module "api_cloud_run_iam" {
   }
 }
 
+## Make frontend Cloud Run publicly invokable
+module "frontend_cloud_run_iam" {
+  source  = "terraform-google-modules/iam/google//modules/cloud_run_services_iam"
+
+  cloud_run_services = [var.frontend_service_name]
+
+  project  = var.project_id
+  location = var.region
+  mode     = "additive"
+
+  bindings = {
+    "roles/run.invoker" = ["allUsers"]
+  }
+}
+
 ## Cloud Run Output Worker
 
 module "output_worker_cloud_run" {

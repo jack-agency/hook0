@@ -59,7 +59,7 @@ variable "api_container_port" {
 variable "api_invoker_members_iam" {
   description = "User or service account allowed to invoke the service"
   type        = list(string)
-  default     = []
+  default     = ["allUsers"]
 }
 
 variable "master_api_key_readers" {
