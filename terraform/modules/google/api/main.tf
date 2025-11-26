@@ -164,3 +164,19 @@ resource "google_compute_firewall" "allow_smtp" {
 #   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 #   nat_ip_allocate_option             = "AUTO_ONLY"
 # }
+
+# Adding NEG for Load Balancer integration.
+resource "google_compute_region_network_endpoint_group" "hook0_api_neg" {
+  name        = "${var.api_service_name}-neg"
+  region      = var.region
+  project     = var.project_id
+  network_endpoint_type = "SERVERLESS"
+  cloud_run {
+    service = google_cloud_run_v2_service.hook0_api.name
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  depends_on = [ google_cloud_run_v2_service.hook0_api ]
+}
