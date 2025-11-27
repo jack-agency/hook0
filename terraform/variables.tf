@@ -36,6 +36,12 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "vpc_host_project_id" {
+  description = "The project ID of the Shared VPC host (leave empty for non-shared VPC)"
+  type        = string
+  default     = null
+}
+
 ## Cloud Run API
 
 variable "api_image" {

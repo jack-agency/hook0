@@ -49,14 +49,15 @@ module "secrets" {
 ## Cloud SQL
 
 module "cloud_sql" {
-  source      = "./modules/google/database"
-  project_id  = var.project_id
-  region      = var.region
-  name        = var.sql_name
-  db_name     = var.db_name
-  db_user     = module.secrets.db_user_secret
-  db_password = module.secrets.db_password_secret
-  vpc_network = var.vpc_network
+  source              = "./modules/google/database"
+  project_id          = var.project_id
+  region              = var.region
+  name                = var.sql_name
+  db_name             = var.db_name
+  db_user             = module.secrets.db_user_secret
+  db_password         = module.secrets.db_password_secret
+  vpc_network         = var.vpc_network
+  vpc_host_project_id = var.vpc_host_project_id
 }
 
 module "cloud_sql_iam" {
@@ -95,6 +96,8 @@ module "frontend_cloud_run" {
   frontend_service_account_email = module.api_service_account.cloud_run_api_sa_email
   api_service_name               = var.api_service_name
   vpc_connector                  = var.vpc_connector
+
+  depends_on = [ module.api_cloud_run ]
 }
 
 ## Cloud Run API Service account
@@ -193,11 +196,13 @@ module "api_cloud_run_iam" {
   bindings = {
     "roles/run.invoker" = var.api_invoker_members_iam
   }
+
+  depends_on = [ module.api_cloud_run ]
 }
 
 ## Make frontend Cloud Run publicly invokable
 module "frontend_cloud_run_iam" {
-  source  = "terraform-google-modules/iam/google//modules/cloud_run_services_iam"
+  source = "terraform-google-modules/iam/google//modules/cloud_run_services_iam"
 
   cloud_run_services = [var.frontend_service_name]
 

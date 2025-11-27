@@ -37,3 +37,9 @@ variable "vpc_network" {
   description = "The name of the existing VPC where the Cloud SQL instance should be deployed"
   type        = string
 }
+
+variable "vpc_host_project_id" {
+    description = "The project ID of the VPC host (for Shared VPC). Defaults to project_id if not specified."
+    type        = string
+    default     = null
+}

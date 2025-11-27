@@ -24,7 +24,7 @@ module "cloud_sql" {
 
   # Private IP configuration
   ip_configuration = {
-    private_network = "projects/${var.project_id}/global/networks/${var.vpc_network}"
+    private_network = "projects/${coalesce(var.vpc_host_project_id, var.project_id)}/global/networks/${var.vpc_network}"
     ipv4_enabled    = false
     require_ssl     = true
   }
