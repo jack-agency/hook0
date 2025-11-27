@@ -40,7 +40,12 @@ variable "output_worker_service_account_email" {
   type        = string
 }
 
-variable "vpc_connector" {
-  description = "The id of the serverless VPC Access connector"
+variable "vpc_network" {
+  description = "The name of the existing VPC where the Cloud Run service should be deployed"
   type        = string
+}
+
+variable "shared_vpc_host_project_id" {
+  description = "The Shared VPC host project id"
+  type = string
 }

@@ -62,13 +62,12 @@ resource "google_cloud_run_v2_worker_pool" "hook0_output_worker" {
     }
 
     vpc_access {
-      egress = "PRIVATE_RANGES_ONLY"
-      network_interfaces {
-        network    = "lucius"
-        subnetwork = "lucius"
-        tags       = ["smtp"]
-      }
+    network_interfaces {
+      network    = "projects/${var.shared_vpc_host_project_id}/global/networks/${var.vpc_network}"
+      subnetwork = "projects/${var.shared_vpc_host_project_id}/regions/${var.region}/subnetworks/${var.vpc_network}-${var.region}-primary"
     }
+    egress = "PRIVATE_RANGES_ONLY"
+  }
   }
 
   depends_on = [var.output_worker_service_account_email, var.database_url]

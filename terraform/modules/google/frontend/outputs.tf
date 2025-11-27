@@ -8,3 +8,9 @@ output "frontend_neg_id" {
   value       = google_compute_region_network_endpoint_group.hook0_frontend_neg.id
   
 }
+
+output "frontend_neg_self_link" {
+  description = "The self link of the Cloud Run service NEG"
+  value       = google_compute_region_network_endpoint_group.hook0_frontend_neg.self_link
+  
+}

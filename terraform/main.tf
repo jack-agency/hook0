@@ -213,6 +213,8 @@ module "frontend_cloud_run_iam" {
   bindings = {
     "roles/run.invoker" = ["allUsers"]
   }
+
+  depends_on = [ module.frontend_cloud_run ]
 }
 
 ## Cloud Run Output Worker
@@ -225,6 +227,7 @@ module "output_worker_cloud_run" {
   output_worker_pool_name             = var.output_worker_pool_name
   database_url                        = module.secrets.db_connection_string
   database_connection_name            = module.cloud_sql.instance_connection_name
-  vpc_connector                       = var.vpc_connector
+  vpc_network                         = var.vpc_network
+  shared_vpc_host_project_id          = var.vpc_host_project_id
   output_worker_service_account_email = module.api_service_account.cloud_run_api_sa_email
 }

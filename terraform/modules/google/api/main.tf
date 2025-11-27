@@ -117,35 +117,29 @@ resource "google_cloud_run_v2_service" "hook0_api" {
     }
 
     vpc_access {
-      # connector = var.vpc_connector
+      connector = var.vpc_connector
       egress = "PRIVATE_RANGES_ONLY"
-
-      network_interfaces {
-        network    = "lucius"
-        subnetwork = "lucius"
-        tags       = ["smtp"]
-      }
     }
   }
 
   depends_on = [var.biscuit_private_key, var.api_service_account_email, var.database_url]
 }
 
-resource "google_compute_firewall" "allow_smtp" {
-  name    = "lucius-allow-smtp"
-  network = var.vpc_network
+# resource "google_compute_firewall" "allow_smtp" {
+#   name    = "lucius-allow-smtp"
+#   network = var.vpc_network
 
-  direction   = "EGRESS"
-  description = "Allow SMTP egress on secure ports 465 and 587."
+#   direction   = "EGRESS"
+#   description = "Allow SMTP egress on secure ports 465 and 587."
 
-  allow {
-    protocol = "tcp"
-    ports    = ["465", "587"]
-  }
+#   allow {
+#     protocol = "tcp"
+#     ports    = ["465", "587"]
+#   }
 
-  target_tags        = ["smtp"]
-  destination_ranges = ["0.0.0.0/0"]
-}
+#   target_tags        = ["smtp"]
+#   destination_ranges = ["0.0.0.0/0"]
+# }
 
 # Cloud router and NAT to allow egress traffic to the SMTP server.
 
